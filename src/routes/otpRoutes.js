@@ -1,5 +1,8 @@
 const express = require('express')
-const { createOtp } = require('../services/otpService')
+const {
+    createOtp,
+    verifyOtp
+} = require('../services/otpService')
 
 const router = express.Router()
 
@@ -19,6 +22,31 @@ router.post('/request', (req, res) => {
         success: true,
         message: 'OTP sent successfully',
         challengeId: result.id
+    })
+})
+
+router.post('/verify', (req, res) => {
+    const { phone, otp } = req.body
+
+    if (!phone || !otp) {
+        return res.status(400).json({
+            success: false,
+            message: 'Phone number and OTP are required'
+        })
+    }
+
+    const isValid = verifyOtp(phone, otp)
+
+    if (!isValid) {
+        return res.status(401).json({
+            success: false,
+            message: 'Invalid OTP'
+        })
+    }
+
+    return res.status(200).json({
+        success: true,
+        message: 'OTP verified successfully'
     })
 })
 

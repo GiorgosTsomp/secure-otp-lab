@@ -29,6 +29,20 @@ function createOtp(phone) {
     }
 }
 
+function verifyOtp(phone, otp) {
+    const statement = db.prepare(`
+    SELECT id, phone, otp, created_at
+    FROM otp_challenges
+    WHERE phone = ? AND otp = ?
+    LIMIT 1
+  `)
+
+    const challenge = statement.get(phone, otp)
+
+    return Boolean(challenge)
+}
+
 module.exports = {
-    createOtp
+    createOtp,
+    verifyOtp
 }
