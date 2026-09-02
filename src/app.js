@@ -4,9 +4,13 @@ const express = require('express')
 
 require('./database/database')
 
+const otpRoutes = require('./routes/otpRoutes')
+
 const app = express()
 
 app.use(express.json())
+
+app.use('/otp', otpRoutes)
 
 app.get('/health', (req, res) => {
     res.status(200).json({
