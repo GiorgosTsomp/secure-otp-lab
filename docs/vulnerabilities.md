@@ -145,7 +145,7 @@ The project will later evaluate an appropriate keyed digest strategy and the lim
 
 ## V-05: No OTP Expiration Enforcement
 
-Status: Identified
+Status: Mitigated
 
 Severity: High
 
@@ -162,6 +162,14 @@ As a result, an OTP remains valid regardless of its age.
 ### Root Cause
 
 The database stores created_at, but verification does not compare it against an expiration time.
+
+### Mitigation
+
+OTP verification now enforces the configured expiration window using the
+challenge creation timestamp.
+
+The application reads `OTP_EXPIRY_SECONDS` from the environment and rejects
+OTP challenges created before the allowed validity window.
 
 ### Expected Secure Behavior
 
@@ -301,7 +309,7 @@ Current Vulnerability Summary
 | V-02 | Unlimited OTP Guessing   | Confirmed  |
 | V-03 | Weak OTP Generation      | Mitigated  |
 | V-04 | Plaintext OTP Storage    | Identified |
-| V-05 | No OTP Expiration        | Identified |
+| V-05 | No OTP Expiration        | Mitigated  |
 | V-06 | Multiple Active OTPs     | Identified |
 | V-07 | No Request Rate Limiting | Identified |
 | V-08 | Weak Input Validation    | Identified |

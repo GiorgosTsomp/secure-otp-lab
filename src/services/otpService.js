@@ -31,14 +31,25 @@ function createOtp(phone) {
 }
 
 function verifyOtp(phone, otp) {
+    const otpExpirySeconds =
+        Number(process.env.OTP_EXPIRY_SECONDS) || 300
+
+    const expiryModifier = `-${otpExpirySeconds} seconds`
+
     const statement = db.prepare(`
     SELECT id, phone, otp, created_at
     FROM otp_challenges
-    WHERE phone = ? AND otp = ?
+    WHERE phone = ?
+      AND otp = ?
+      AND created_at >= datetime('now', ?)
     LIMIT 1
   `)
 
-    const challenge = statement.get(phone, otp)
+    const challenge = statement.get(
+        phone,
+        otp,
+        expiryModifier
+    )
 
     return Boolean(challenge)
 }
