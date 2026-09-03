@@ -1,3 +1,4 @@
+const crypto = require('crypto')
 const db = require('../database/database')
 const { sendSms } = require('./mockSmsService')
 
@@ -7,7 +8,7 @@ function generateOtp() {
     const min = 10 ** (otpLength - 1)
     const max = 10 ** otpLength
 
-    return Math.floor(min + Math.random() * (max - min)).toString()
+    return crypto.randomInt(min, max).toString()
 }
 
 function createOtp(phone) {

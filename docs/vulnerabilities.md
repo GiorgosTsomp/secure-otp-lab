@@ -83,7 +83,7 @@ Additional rate limiting should restrict automated request volume.
 
 ## V-03: Weak OTP Generation
 
-Status: Identified
+Status: Mitigated
 
 Severity: High
 
@@ -98,6 +98,12 @@ Math.random() is not intended for generating authentication secrets.
 ### Root Cause
 
 The implementation uses a general-purpose pseudo-random number generator instead of a cryptographically secure random number generator.
+
+### Mitigation
+
+The OTP generator was changed from `Math.random()` to Node.js
+`crypto.randomInt()`, which provides cryptographically secure random
+number generation suitable for security-sensitive values.
 
 ### Expected Secure Behavior
 
@@ -293,7 +299,7 @@ Current Vulnerability Summary
 | ---- | ------------------------ | ---------- |
 | V-01 | OTP Replay               | Confirmed  |
 | V-02 | Unlimited OTP Guessing   | Confirmed  |
-| V-03 | Weak OTP Generation      | Identified |
+| V-03 | Weak OTP Generation      | Mitigated  |
 | V-04 | Plaintext OTP Storage    | Identified |
 | V-05 | No OTP Expiration        | Identified |
 | V-06 | Multiple Active OTPs     | Identified |
