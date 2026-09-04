@@ -26,16 +26,16 @@ router.post('/request', (req, res) => {
 })
 
 router.post('/verify', (req, res) => {
-    const { phone, otp } = req.body
+    const { challengeId, phone, otp } = req.body
 
-    if (!phone || !otp) {
+    if (!challengeId || !phone || !otp) {
         return res.status(400).json({
             success: false,
-            message: 'Phone number and OTP are required'
+            message: 'Challenge ID, phone number, and OTP are required'
         })
     }
 
-    const isValid = verifyOtp(phone, otp)
+    const isValid = verifyOtp(challengeId, phone, otp)
 
     if (!isValid) {
         return res.status(401).json({

@@ -30,29 +30,48 @@ function createOtp(phone) {
     }
 }
 
-function verifyOtp(phone, otp) {
+function verifyOtp(challengeId, phone, otp) {
     const otpExpirySeconds =
         Number(process.env.OTP_EXPIRY_SECONDS) || 300
+
+    const maxAttempts =
+        Number(process.env.OTP_MAX_ATTEMPTS) || 5
 
     const expiryModifier = `-${otpExpirySeconds} seconds`
 
     const findStatement = db.prepare(`
-    SELECT id
+    SELECT id, phone, otp, failed_attempts
     FROM otp_challenges
-    WHERE phone = ?
-      AND otp = ?
+    WHERE id = ?
+      AND phone = ?
       AND created_at >= datetime('now', ?)
       AND used_at IS NULL
     LIMIT 1
   `)
 
     const challenge = findStatement.get(
+        challengeId,
         phone,
-        otp,
         expiryModifier
     )
 
     if (!challenge) {
+        return false
+    }
+
+    if (challenge.failed_attempts >= maxAttempts) {
+        return false
+    }
+
+    if (challenge.otp !== otp) {
+        const incrementStatement = db.prepare(`
+      UPDATE otp_challenges
+      SET failed_attempts = failed_attempts + 1
+      WHERE id = ?
+    `)
+
+        incrementStatement.run(challenge.id)
+
         return false
     }
 
@@ -61,9 +80,13 @@ function verifyOtp(phone, otp) {
     SET used_at = CURRENT_TIMESTAMP
     WHERE id = ?
       AND used_at IS NULL
+      AND failed_attempts < ?
   `)
 
-    const result = consumeStatement.run(challenge.id)
+    const result = consumeStatement.run(
+        challenge.id,
+        maxAttempts
+    )
 
     return result.changes === 1
 }

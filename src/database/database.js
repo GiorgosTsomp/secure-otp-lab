@@ -11,7 +11,8 @@ db.exec(`
     phone TEXT NOT NULL,
     otp TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    used_at DATETIME DEFAULT NULL
+    used_at DATETIME DEFAULT NULL,
+    failed_attempts INTEGER NOT NULL DEFAULT 0
   )
 `)
 
@@ -30,6 +31,21 @@ if (!hasUsedAt) {
   `)
 
   console.log('Database migration applied: added used_at column')
+}
+
+const hasFailedAttempts = columns.some(
+  column => column.name === 'failed_attempts'
+)
+
+if (!hasFailedAttempts) {
+  db.exec(`
+    ALTER TABLE otp_challenges
+    ADD COLUMN failed_attempts INTEGER NOT NULL DEFAULT 0
+  `)
+
+  console.log(
+    'Database migration applied: added failed_attempts column'
+  )
 }
 
 console.log('SQLite database initialized')

@@ -56,7 +56,7 @@ After the first successful verification, the OTP should become permanently inval
 
 ## V-02: Unlimited OTP Guessing
 
-Status: Confirmed
+Status: Mitigated
 
 Severity: High
 
@@ -80,6 +80,19 @@ attacks/brute_force.py
 For practical local testing, the OTP length can temporarily be reduced to four digits.
 
 The attack script automatically submits possible OTP values until the server returns a successful verification response.
+
+### Mitigation
+
+Each OTP challenge now tracks failed verification attempts.
+
+The verification endpoint requires a specific `challengeId`, and failed
+attempts increment the counter for that challenge.
+
+Once `OTP_MAX_ATTEMPTS` is reached, the challenge is permanently rejected,
+including when the correct OTP is subsequently submitted.
+
+The existing brute-force proof-of-concept can no longer continue guessing
+until a valid OTP is found.
 
 ### Expected Secure Behavior
 
@@ -265,7 +278,7 @@ User identifiers should be validated and normalized before being used by the OTP
 
 ## V-09: Verification Is Not Bound to a Challenge
 
-Status: Identified
+Status: Mitigated
 
 Severity: Medium
 
@@ -278,6 +291,14 @@ Verification currently searches for any database entry matching:
 phone + OTP
 
 rather than verifying a specific challenge.
+
+### Mitigation
+
+OTP verification now requires the `challengeId` returned when the OTP
+challenge is created.
+
+Verification is therefore performed against a specific challenge rather
+than searching for any matching OTP associated with the phone number.
 
 ### Expected Secure Behavior
 
@@ -314,12 +335,12 @@ Current Vulnerability Summary
 | ID   | Vulnerability            | Status     |
 | ---- | ------------------------ | ---------- |
 | V-01 | OTP Replay               | Mitigated  |
-| V-02 | Unlimited OTP Guessing   | Confirmed  |
+| V-02 | Unlimited OTP Guessing   | Mitigated  |
 | V-03 | Weak OTP Generation      | Mitigated  |
 | V-04 | Plaintext OTP Storage    | Identified |
 | V-05 | No OTP Expiration        | Mitigated  |
 | V-06 | Multiple Active OTPs     | Identified |
 | V-07 | No Request Rate Limiting | Identified |
 | V-08 | Weak Input Validation    | Identified |
-| V-09 | No Challenge Binding     | Identified |
+| V-09 | No Challenge Binding     | Mitigated  |
 | V-10 | No Purpose Binding       | Identified |
