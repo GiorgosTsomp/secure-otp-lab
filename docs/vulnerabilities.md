@@ -8,7 +8,7 @@ The initial implementation is designed to function correctly while omitting seve
 
 ## V-01: OTP Replay
 
-**Status:** Confirmed
+**Status:** Mitigated
 
 **Severity:** High
 
@@ -40,7 +40,15 @@ The script submits a valid OTP and then immediately sends the exact same verific
 
 Both requests are accepted.
 
-Expected Secure Behavior
+### Mitigation
+
+OTP challenges now include a `used_at` state.
+
+After successful verification, the challenge is atomically marked as consumed. Future verification attempts require `used_at` to remain `NULL`, preventing the same OTP from being accepted again.
+
+The existing replay proof-of-concept was executed again after the mitigation. The first verification succeeds, while replaying the same OTP is rejected.
+
+### Expected Secure Behavior
 
 After the first successful verification, the OTP should become permanently invalid.
 
@@ -305,7 +313,7 @@ Current Vulnerability Summary
 
 | ID   | Vulnerability            | Status     |
 | ---- | ------------------------ | ---------- |
-| V-01 | OTP Replay               | Confirmed  |
+| V-01 | OTP Replay               | Mitigated  |
 | V-02 | Unlimited OTP Guessing   | Confirmed  |
 | V-03 | Weak OTP Generation      | Mitigated  |
 | V-04 | Plaintext OTP Storage    | Identified |

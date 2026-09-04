@@ -2,7 +2,7 @@ import requests
 
 BASE_URL = "http://localhost:3000"
 
-phone = "+306900000001"
+phone = "+306900000069"
 
 otp = input("Enter the OTP received from the mock SMS service: ")
 

@@ -36,22 +36,36 @@ function verifyOtp(phone, otp) {
 
     const expiryModifier = `-${otpExpirySeconds} seconds`
 
-    const statement = db.prepare(`
-    SELECT id, phone, otp, created_at
+    const findStatement = db.prepare(`
+    SELECT id
     FROM otp_challenges
     WHERE phone = ?
       AND otp = ?
       AND created_at >= datetime('now', ?)
+      AND used_at IS NULL
     LIMIT 1
   `)
 
-    const challenge = statement.get(
+    const challenge = findStatement.get(
         phone,
         otp,
         expiryModifier
     )
 
-    return Boolean(challenge)
+    if (!challenge) {
+        return false
+    }
+
+    const consumeStatement = db.prepare(`
+    UPDATE otp_challenges
+    SET used_at = CURRENT_TIMESTAMP
+    WHERE id = ?
+      AND used_at IS NULL
+  `)
+
+    const result = consumeStatement.run(challenge.id)
+
+    return result.changes === 1
 }
 
 module.exports = {
