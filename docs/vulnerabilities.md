@@ -20,7 +20,6 @@ The application checks whether a matching OTP exists in the database but does no
 
 ### Vulnerable Behavior
 
-```text
 OTP: 583214
 
 Verification #1 -> SUCCESS
@@ -259,13 +258,13 @@ The system should define a clear policy for new OTP requests and invalidate olde
 
 ## V-07: No OTP Request Rate Limiting
 
-Status: Confirmed
+**Status:** Confirmed
 
-Severity: High
+**Severity:** High
 
 ### Description
 
-The /otp/request endpoint currently accepts repeated requests without restriction.
+The `/otp/request` endpoint currently accepts repeated requests without restriction.
 
 An automated client could continuously request new OTP challenges.
 
@@ -273,24 +272,29 @@ An automated client could continuously request new OTP challenges.
 
 In a real system this could cause:
 
-SMS or email flooding
-Resource exhaustion
-Provider cost abuse
-User harassment
-Denial of service
-Expected Secure Behavior
+- SMS or email flooding
+- Resource exhaustion
+- Provider cost abuse
+- User harassment
+- Denial of service
 
-Request frequency should be restricted using multiple controls such as per-user and per-source limits.
+### Root Cause
+
+The OTP request endpoint does not enforce any request frequency restrictions based on the phone number or source IP address.
 
 ### Proof of Concept
 
 `attacks/request_flood.py`
 
-The script sends multiple OTP generation requests for the same user in
-rapid succession.
+The script sends multiple OTP generation requests for the same phone number in rapid succession.
 
-The naive request endpoint accepts every request because no request
-cooldown or rate limiting is enforced.
+During testing, all 20 requests were accepted by the application, demonstrating that the endpoint had no effective protection against automated request flooding.
+
+### Expected Secure Behavior
+
+OTP request frequency should be restricted using multiple controls, including per-user and per-source limits.
+
+Requests exceeding the configured limits should be rejected before a new OTP is generated or delivered.
 
 ---
 
