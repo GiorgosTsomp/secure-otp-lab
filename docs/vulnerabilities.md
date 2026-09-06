@@ -259,7 +259,7 @@ The system should define a clear policy for new OTP requests and invalidate olde
 
 ## V-07: No OTP Request Rate Limiting
 
-Status: Identified
+Status: Confirmed
 
 Severity: High
 
@@ -281,6 +281,16 @@ Denial of service
 Expected Secure Behavior
 
 Request frequency should be restricted using multiple controls such as per-user and per-source limits.
+
+### Proof of Concept
+
+`attacks/request_flood.py`
+
+The script sends multiple OTP generation requests for the same user in
+rapid succession.
+
+The naive request endpoint accepts every request because no request
+cooldown or rate limiting is enforced.
 
 ---
 
@@ -372,7 +382,7 @@ Current Vulnerability Summary
 | V-04 | Plaintext OTP Storage    | Mitigated  |
 | V-05 | No OTP Expiration        | Mitigated  |
 | V-06 | Multiple Active OTPs     | Mitigated  |
-| V-07 | No Request Rate Limiting | Identified |
+| V-07 | No Request Rate Limiting | Confirmed  |
 | V-08 | Weak Input Validation    | Identified |
 | V-09 | No Challenge Binding     | Mitigated  |
 | V-10 | No Purpose Binding       | Identified |
