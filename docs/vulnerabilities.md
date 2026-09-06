@@ -216,7 +216,7 @@ OTP challenges should have a short validity period and expired challenges must a
 
 ## V-06: Multiple Active OTPs
 
-Status: Identified
+Status: Mitigated
 
 Severity: Medium
 
@@ -234,6 +234,22 @@ Request #2 -> 741823
 Root Cause
 
 Creating a new OTP does not invalidate previous challenges associated with the same user.
+
+### Mitigation
+
+Creating a new OTP challenge now invalidates any previous active
+challenges associated with the same phone number.
+
+A dedicated `invalidated_at` field distinguishes challenges that were
+superseded by a newer request from challenges that were successfully
+consumed.
+
+The invalidation and creation of the replacement challenge are performed
+inside a database transaction so that both operations succeed or fail as
+a single unit.
+
+OTP verification rejects any challenge whose `invalidated_at` value is
+set.
 
 ### Expected Secure Behavior
 
@@ -355,7 +371,7 @@ Current Vulnerability Summary
 | V-03 | Weak OTP Generation      | Mitigated  |
 | V-04 | Plaintext OTP Storage    | Mitigated  |
 | V-05 | No OTP Expiration        | Mitigated  |
-| V-06 | Multiple Active OTPs     | Identified |
+| V-06 | Multiple Active OTPs     | Mitigated  |
 | V-07 | No Request Rate Limiting | Identified |
 | V-08 | Weak Input Validation    | Identified |
 | V-09 | No Challenge Binding     | Mitigated  |

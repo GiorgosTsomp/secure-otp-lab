@@ -12,6 +12,7 @@ db.exec(`
     otp_digest TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     used_at DATETIME DEFAULT NULL,
+    invalidated_at DATETIME DEFAULT NULL,
     failed_attempts INTEGER NOT NULL DEFAULT 0
   )
 `)
@@ -45,6 +46,21 @@ if (!hasFailedAttempts) {
 
   console.log(
     'Database migration applied: added failed_attempts column'
+  )
+}
+
+const hasInvalidatedAt = columns.some(
+  column => column.name === 'invalidated_at'
+)
+
+if (!hasInvalidatedAt) {
+  db.exec(`
+    ALTER TABLE otp_challenges
+    ADD COLUMN invalidated_at DATETIME DEFAULT NULL
+  `)
+
+  console.log(
+    'Database migration applied: added invalidated_at column'
   )
 }
 

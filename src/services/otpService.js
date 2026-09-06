@@ -24,16 +24,35 @@ function createOtpDigest(otp) {
         .digest('hex')
 }
 
+const createChallengeTransaction = db.transaction(
+    (phone, otpDigest) => {
+        const invalidateStatement = db.prepare(`
+      UPDATE otp_challenges
+      SET invalidated_at = CURRENT_TIMESTAMP
+      WHERE phone = ?
+        AND used_at IS NULL
+        AND invalidated_at IS NULL
+    `)
+
+        invalidateStatement.run(phone)
+
+        const insertStatement = db.prepare(`
+      INSERT INTO otp_challenges (phone, otp_digest)
+      VALUES (?, ?)
+    `)
+
+        return insertStatement.run(phone, otpDigest)
+    }
+)
+
 function createOtp(phone) {
     const otp = generateOtp()
     const otpDigest = createOtpDigest(otp)
 
-    const statement = db.prepare(`
-    INSERT INTO otp_challenges (phone, otp_digest)
-    VALUES (?, ?)
-  `)
-
-    const result = statement.run(phone, otpDigest)
+    const result = createChallengeTransaction(
+        phone,
+        otpDigest
+    )
 
     const message = `Your verification code is: ${otp}`
 
@@ -60,6 +79,7 @@ function verifyOtp(challengeId, phone, otp) {
       AND phone = ?
       AND created_at >= datetime('now', ?)
       AND used_at IS NULL
+      AND invalidated_at IS NULL
     LIMIT 1
   `)
 
