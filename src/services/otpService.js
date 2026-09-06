@@ -11,15 +11,29 @@ function generateOtp() {
     return crypto.randomInt(min, max).toString()
 }
 
+function createOtpDigest(otp) {
+    const secret = process.env.OTP_HMAC_SECRET
+
+    if (!secret) {
+        throw new Error('OTP_HMAC_SECRET is required')
+    }
+
+    return crypto
+        .createHmac('sha256', secret)
+        .update(otp)
+        .digest('hex')
+}
+
 function createOtp(phone) {
     const otp = generateOtp()
+    const otpDigest = createOtpDigest(otp)
 
     const statement = db.prepare(`
-    INSERT INTO otp_challenges (phone, otp)
+    INSERT INTO otp_challenges (phone, otp_digest)
     VALUES (?, ?)
   `)
 
-    const result = statement.run(phone, otp)
+    const result = statement.run(phone, otpDigest)
 
     const message = `Your verification code is: ${otp}`
 
@@ -40,7 +54,7 @@ function verifyOtp(challengeId, phone, otp) {
     const expiryModifier = `-${otpExpirySeconds} seconds`
 
     const findStatement = db.prepare(`
-    SELECT id, phone, otp, failed_attempts
+    SELECT id, phone, otp_digest, failed_attempts
     FROM otp_challenges
     WHERE id = ?
       AND phone = ?
@@ -63,7 +77,24 @@ function verifyOtp(challengeId, phone, otp) {
         return false
     }
 
-    if (challenge.otp !== otp) {
+    const submittedDigest = createOtpDigest(otp)
+
+    const storedDigestBuffer = Buffer.from(
+        challenge.otp_digest,
+        'hex'
+    )
+
+    const submittedDigestBuffer = Buffer.from(
+        submittedDigest,
+        'hex'
+    )
+
+    const otpMatches = crypto.timingSafeEqual(
+        storedDigestBuffer,
+        submittedDigestBuffer
+    )
+
+    if (!otpMatches) {
         const incrementStatement = db.prepare(`
       UPDATE otp_challenges
       SET failed_attempts = failed_attempts + 1

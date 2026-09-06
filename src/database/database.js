@@ -9,7 +9,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS otp_challenges (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     phone TEXT NOT NULL,
-    otp TEXT NOT NULL,
+    otp_digest TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     used_at DATETIME DEFAULT NULL,
     failed_attempts INTEGER NOT NULL DEFAULT 0

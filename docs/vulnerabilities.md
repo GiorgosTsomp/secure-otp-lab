@@ -136,7 +136,7 @@ In Node.js, this can be implemented using the crypto module.
 
 ## V-04: Plaintext OTP Storage
 
-Status: Identified
+Status: Mitigated
 
 Severity: High
 
@@ -155,6 +155,22 @@ If the database is exposed, active OTP values can be immediately read.
 ### Root Cause
 
 The naive database schema stores the OTP value directly.
+
+### Mitigation
+
+OTP values are no longer stored directly in the database.
+
+Before storage, the OTP is transformed using HMAC-SHA-256 with a
+server-side secret stored outside the database. Verification computes the
+HMAC of the submitted OTP and compares it with the stored digest using
+`crypto.timingSafeEqual()`.
+
+As a result, compromise of the database alone no longer immediately
+reveals active OTP values.
+
+This mitigation does not increase the inherent entropy of a six-digit OTP.
+If both the database and the HMAC secret are compromised, the small OTP
+keyspace can still be searched offline.
 
 ### Expected Secure Behavior
 
@@ -337,7 +353,7 @@ Current Vulnerability Summary
 | V-01 | OTP Replay               | Mitigated  |
 | V-02 | Unlimited OTP Guessing   | Mitigated  |
 | V-03 | Weak OTP Generation      | Mitigated  |
-| V-04 | Plaintext OTP Storage    | Identified |
+| V-04 | Plaintext OTP Storage    | Mitigated  |
 | V-05 | No OTP Expiration        | Mitigated  |
 | V-06 | Multiple Active OTPs     | Identified |
 | V-07 | No Request Rate Limiting | Identified |
