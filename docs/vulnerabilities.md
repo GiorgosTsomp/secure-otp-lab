@@ -258,7 +258,7 @@ The system should define a clear policy for new OTP requests and invalidate olde
 
 ## V-07: No OTP Request Rate Limiting
 
-**Status:** Confirmed
+**Status:** Mitigated
 
 **Severity:** High
 
@@ -289,6 +289,26 @@ The OTP request endpoint does not enforce any request frequency restrictions bas
 The script sends multiple OTP generation requests for the same phone number in rapid succession.
 
 During testing, all 20 requests were accepted by the application, demonstrating that the endpoint had no effective protection against automated request flooding.
+
+### Mitigation
+
+The OTP request endpoint now applies layered in-memory rate limiting.
+
+Requests are limited both per phone number and per source IP address
+within a configurable time window.
+
+When a limit is exceeded, the server responds with HTTP `429 Too Many
+Requests` and includes a `Retry-After` header.
+
+The original request flooding proof-of-concept was executed again after
+the mitigation. Instead of accepting all 20 requests, the application
+accepts only the configured number of requests and rejects the remaining
+requests.
+
+The current limiter uses process-local memory because this project runs
+as a single local application instance. A distributed production system
+would require shared rate-limit state, such as Redis or an equivalent
+infrastructure-level mechanism.
 
 ### Expected Secure Behavior
 
@@ -386,7 +406,7 @@ Current Vulnerability Summary
 | V-04 | Plaintext OTP Storage    | Mitigated  |
 | V-05 | No OTP Expiration        | Mitigated  |
 | V-06 | Multiple Active OTPs     | Mitigated  |
-| V-07 | No Request Rate Limiting | Confirmed  |
+| V-07 | No Request Rate Limiting | Mitigated  |
 | V-08 | Weak Input Validation    | Identified |
 | V-09 | No Challenge Binding     | Mitigated  |
 | V-10 | No Purpose Binding       | Identified |
